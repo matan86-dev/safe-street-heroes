@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>גיבורי הדרך – Safe Street Heroes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#23304a;--card:#fffdf6;--accent:#ff7a2f;--green:#2fbf4a;--red:#ef3b3b;--blue:#2f7cf6}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body.he,body.he button{font-family:'Rubik',system-ui,sans-serif}
+  html,body{margin:0;height:100%;overflow:hidden;background:#cfe9ff;font-family:'Baloo 2',system-ui,sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:none}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .hud{position:fixed;z-index:5}
+  #top{top:10px;left:10px;right:10px;display:flex;gap:10px;align-items:flex-start;pointer-events:none}
+  #lvcard{background:var(--card);border-radius:18px;padding:8px 16px 10px;box-shadow:0 4px 0 rgba(0,0,0,.12);max-width:520px;pointer-events:auto;border:3px solid #ffd34d}
+  #lvTitle{font-weight:800;font-size:20px;line-height:1.1}
+  #lvText{font-size:15px;line-height:1.25;margin-top:2px}
+  #topbtns{margin-left:auto;display:flex;gap:8px;pointer-events:auto}
+  .ib{width:48px;height:48px;border-radius:14px;border:none;background:var(--card);font-size:24px;box-shadow:0 4px 0 rgba(0,0,0,.15);cursor:pointer}
+  .ib:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15)}
+  #status{left:50%;transform:translateX(-50%);bottom:22px;background:rgba(35,48,74,.88);color:#fff;font-weight:700;font-size:18px;padding:8px 18px;border-radius:999px;white-space:nowrap;display:none}
+  #dpad{direction:ltr;left:16px;bottom:16px;width:174px;height:174px;display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px)}
+  #dpad button{border:none;border-radius:16px;background:rgba(255,253,246,.92);font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.18);touch-action:none;cursor:pointer;color:var(--ink)}
+  #dpad button.on{background:#ffd34d;transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+  #lookBtn{right:18px;bottom:22px;width:118px;height:118px;border-radius:50%;border:6px solid #fff;background:var(--blue);color:#fff;font-family:inherit;font-weight:800;font-size:20px;box-shadow:0 6px 0 rgba(0,0,0,.2);cursor:pointer;line-height:1}
+  #lookBtn span{font-size:40px;display:block}
+  #lookBtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .bubble{position:fixed;z-index:4;transform:translate(-50%,-100%);background:#fff;border-radius:16px;padding:6px 12px;font-weight:800;font-size:18px;box-shadow:0 3px 0 rgba(0,0,0,.15);white-space:nowrap;pointer-events:none;display:none}
+  .bubble:after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
+  #toast{left:50%;top:90px;transform:translateX(-50%);background:var(--green);color:#fff;font-weight:800;font-size:22px;padding:8px 22px;border-radius:999px;display:none;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+  .screen{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;background:rgba(30,60,110,.45);padding:16px}
+  .card{background:var(--card);border-radius:28px;padding:22px 26px;max-width:560px;width:100%;text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.15);border:5px solid #ffd34d;max-height:100%;overflow:auto}
+  .card .big{font-size:64px;line-height:1}
+  .card h2{margin:6px 0 4px;font-size:30px;line-height:1.1}
+  .card p{font-size:19px;line-height:1.35;margin:8px 0}
+  .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .b{font-family:inherit;font-weight:800;font-size:21px;border:none;border-radius:16px;padding:10px 24px;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 rgba(0,0,0,.18)}
+  .b.alt{background:#8a96ad}.b.orange{background:var(--accent)}
+  .b:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+  #menu{background:linear-gradient(#8fd3ff,#cdeeff 60%,#9be36b)}
+  #menu .card{max-width:680px}
+  #menu h1{margin:0;font-size:42px;line-height:1;color:var(--accent);text-shadow:0 3px 0 #ffe08a}
+  .levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+  .lv{border:none;font-family:inherit;background:#fff;border-radius:18px;padding:12px 10px;cursor:pointer;box-shadow:0 5px 0 #e7d9b0;border:3px solid #f1e3b8;text-align:center;color:var(--ink)}
+  .lv:active{transform:translateY(4px);box-shadow:0 1px 0 #e7d9b0}
+  .lv .ic{font-size:40px;line-height:1}.lv .t{font-weight:800;font-size:18px;line-height:1.1;margin-top:4px}.lv .s{font-size:18px;letter-spacing:2px;min-height:24px}
+  .lv.free{background:#fff4d6}
+  .keys{font-size:14px;opacity:.75;margin-top:12px}
+  #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;z-index:20;background:#cfe9ff}
+  @media (max-width:640px){#lvTitle{font-size:17px}#lvText{font-size:13px}.ib{width:42px;height:42px;font-size:20px}#lookBtn{width:96px;height:96px;font-size:16px}#lookBtn span{font-size:32px}#dpad{width:150px;height:150px;grid-template-columns:repeat(3,50px);grid-template-rows:repeat(3,50px)}#status{bottom:auto;top:118px;font-size:15px}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="loading">…</div>
+<div id="top" class="hud">
+  <div id="lvcard"><div id="lvTitle">Safe Street Heroes</div><div id="lvText"></div></div>
+  <div id="topbtns">
+    <button class="ib" id="btnLang" title="Language" style="font-size:18px;font-weight:800">EN</button>
+    <button class="ib" id="btnSound" title="Sound and voice">🔊</button>
+    <button class="ib" id="btnView" title="Map view (M)">🗺️</button>
+    <button class="ib" id="btnMenu" title="Menu">🏠</button>
+  </div>
+</div>
+<div id="status" class="hud"></div>
+<div id="toast" class="hud"></div>
+<div id="dpad" class="hud">
+  <span></span><button data-d="up">⬆️</button><span></span>
+  <button data-d="left">⬅️</button><span></span><button data-d="right">➡️</button>
+  <span></span><button data-d="down">⬇️</button><span></span>
+</div>
+<button id="lookBtn" class="hud"><span>👀</span><b id="lookLbl">LOOK</b></button>
+<div id="bubble" class="bubble"></div>
+<div id="bubble2" class="bubble"></div>
+
+<div id="menu" class="screen">
+  <div class="card">
+    <div class="big">🚸</div>
+    <h1 id="mTitle"></h1>
+    <p style="margin:4px 0 0" id="mSub"></p>
+    <div class="levels" id="levels"></div>
+    <div class="keys" id="mKeys"></div>
+    <div class="btns"><button class="b orange" id="menuLang">English</button></div>
+  </div>
+</div>
+<div id="dlg" class="screen"><div class="card" id="dlgCard"></div></div>
+
+<script type="importmap">{"imports":{"three":"__THREE_URL__"}}</script>
+<script>window.__ASSETS=__ASSETS_JSON__;</script>
+<script type="module">
+import * as THREE from 'three';
+const A = window.__ASSETS;
+const $ = id => document.getElementById(id);
+const wx = px => (px - 512) / 10, wz = py => (py - 768) / 10;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ============ TOWN GEOMETRY (carpet pixels) ============ */
+const HROADS = {
+  H1: { y0: 252, y1: 320, x0: 10, x1: 1014 },
+  H2: { y0: 890, y1: 964, x0: 10, x1: 1014 },
+  H3: { y0: 1141, y1: 1215, x0: 10, x1: 1014 },
+  H4: { y0: 1438, y1: 1499, x0: 276, x1: 851 },
+};
+for (const k in HROADS) { const r = HROADS[k]; r.id = k; r.Z0 = wz(r.y0); r.Z1 = wz(r.y1); r.zc = (r.Z0 + r.Z1) / 2; r.half = (r.Z1 - r.Z0) / 2; r.X0 = wx(r.x0); r.X1 = wx(r.x1); }
+const ROAD_RECTS = [ // px x0,y0,x1,y1
+  ...Object.values(HROADS).map(r => [r.x0, r.y0, r.x1, r.y1]),
+  [276, 100, 345, 1500], [780, 100, 849, 1500], [511, 320, 587, 440], [603, 1215, 651, 1440],
+  [345, 548, 392, 650], [705, 558, 780, 650],
+];
+const RB = { cx: 550, cy: 596, ro: 172, ri: 108 };
+function isRoad(x, z) {
+  const px = x * 10 + 512, py = z * 10 + 768;
+  for (const r of ROAD_RECTS) if (px >= r[0] && px <= r[2] && py >= r[1] && py <= r[3]) return true;
+  const d = Math.hypot(px - RB.cx, py - RB.cy);
+  return d < RB.ro && d > RB.ri;
+}
+const CROSS = [];
+function addH(road, xs) { for (const [a, b] of xs) CROSS.push({ id: road + '_' + a, road, axis: 'h', x0: a, x1: b, y0: HROADS[road].y0, y1: HROADS[road].y1 }); }
+function addV(name, x0, x1, ys) { for (const [a, b] of ys) CROSS.push({ id: name + '_' + a, road: name, axis: 'v', x0, x1, y0: a, y1: b }); }
+addH('H1', [[225, 265], [356, 396], [729, 769], [856, 895]]);
+addH('H2', [[226, 268], [349, 389], [728, 770], [859, 902]]);
+addH('H3', [[226, 267], [350, 389], [564, 606], [728, 770], [859, 901]]);
+addV('V1', 276, 345, [[197, 241], [332, 376], [659, 703], [1086, 1130], [1225, 1269]]);
+addV('V2', 780, 849, [[197, 241], [332, 376], [1086, 1130], [1224, 1269]]);
+for (const c of CROSS) { c.X0 = wx(c.x0); c.X1 = wx(c.x1); c.Z0 = wz(c.y0); c.Z1 = wz(c.y1); c.cx = (c.X0 + c.X1) / 2; c.cz = (c.Z0 + c.Z1) / 2; }
+const crossById = id => CROSS.find(c => c.id === id);
+function inCross(c, x, z, pad) {
+  if (c.axis === 'h') return x >= c.X0 - pad && x <= c.X1 + pad && z >= c.Z0 - 0.4 && z <= c.Z1 + 0.4;
+  return z >= c.Z0 - pad && z <= c.Z1 + pad && x >= c.X0 - 0.4 && x <= c.X1 + 0.4;
+}
+const findCross = (x, z, pad) => CROSS.find(c => inCross(c, x, z, pad));
+
+/* ============ RENDERER / SCENE ============ */
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#bfe4ff');
+scene.fog = new THREE.Fog('#bfe4ff', 90, 260);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 600);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x9fbf7a, 1.6); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-30, 60, 40); scene.add(sun);
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+const texLoader = new THREE.TextureLoader();
+function tex(url) { const t = texLoader.load(url); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; }
+
+// living-room floor + the carpet
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshLambertMaterial({ color: '#d8b07a' }));
+floor.rotation.x = -Math.PI / 2; floor.position.y = -0.06; scene.add(floor);
+for (let i = -12; i <= 12; i++) { // floor boards
+  const l = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 700), new THREE.MeshBasicMaterial({ color: '#c29563' }));
+  l.rotation.x = -Math.PI / 2; l.position.set(i * 14 + 7, -0.05, 0); scene.add(l);
+}
+const carpet = new THREE.Mesh(new THREE.PlaneGeometry(102.4, 153.6), new THREE.MeshBasicMaterial({ map: tex(A.ground) }));
+carpet.rotation.x = -Math.PI / 2; scene.add(carpet);
+
+// pop-up buildings cut from the carpet
+const sprites = [];
+for (const s of A.sprites) {
+  const [x0, y0, x1, y1] = s.r, w = (x1 - x0) / 10, h = (y1 - y0) / 10;
+  const g = new THREE.Group(); g.position.set(wx((x0 + x1) / 2), 0, wz(y1) - 0.05);
+  const mat = new THREE.MeshBasicMaterial({ map: tex(s.d), transparent: true, alphaTest: 0.5, side: THREE.FrontSide });
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); front.position.y = h / 2; g.add(front);
+  const backMat = new THREE.MeshLambertMaterial({ color: '#f3e6cf', transparent: true, alphaTest: 0.5, side: THREE.FrontSide });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), backMat); back.position.set(0, h / 2, -0.04); back.rotation.y = Math.PI; g.add(back);
+  const img = new Image(); img.onload = () => { // silhouette for the back side
+    const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const cx = cv.getContext('2d');
+    cx.drawImage(img, 0, 0); cx.globalCompositeOperation = 'source-in'; cx.fillStyle = '#f3e6cf'; cx.fillRect(0, 0, cv.width, cv.height);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; backMat.map = t; backMat.needsUpdate = true;
+  }; img.src = s.d;
+  scene.add(g);
+  sprites.push({ g, mats: [mat, backMat], X0: wx(x0), X1: wx(x1), z: wz(y1), op: 1 });
+}
+
+/* ============ MODELS ============ */
+let night = false;
+const lam = c => new THREE.MeshLambertMaterial({ color: c });
+function blob(r) { const m = new THREE.Mesh(new THREE.CircleGeometry(r, 24), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = 0.02; return m; }
+
+function makePerson(o) {
+  const g = new THREE.Group(), s = o.scale || 1;
+  const body = new THREE.Group(); body.scale.setScalar(s); g.add(body);
+  const legMat = lam(o.pants), shoe = lam('#3a2a20');
+  const legs = [];
+  for (const sx of [-0.12, 0.12]) {
+    const p = new THREE.Group(); p.position.set(sx, 0.56, 0);
+    const l = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.5, 0.17), legMat); l.position.y = -0.25; p.add(l);
+    const f = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.08, 0.26), shoe); f.position.set(0, -0.52, 0.04); p.add(f);
+    body.add(p); legs.push(p);
+  }
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.58, 16), lam(o.shirt)); torso.position.y = 0.84; body.add(torso);
+  const arms = [];
+  for (const sx of [-0.33, 0.33]) {
+    const p = new THREE.Group(); p.position.set(sx, 1.08, 0);
+    const a = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.46, 0.12), lam(o.shirt)); a.position.y = -0.21; p.add(a);
+    const hnd = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), lam(o.skin)); hnd.position.y = -0.46; p.add(hnd);
+    body.add(p); arms.push(p);
+  }
+  const head = new THREE.Group(); head.position.y = 1.38; body.add(head);
+  head.add(new THREE.Mesh(new THREE.SphereGeometry(0.27, 20, 16), lam(o.skin)));
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.285, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), lam(o.hair)); hair.rotation.x = -0.35; head.add(hair);
+  for (const sx of [-0.095, 0.095]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), lam('#1b1b1b')); e.position.set(sx, 0.02, 0.245); head.add(e); }
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 6, 12, Math.PI), lam('#a33')); smile.position.set(0, -0.08, 0.25); smile.rotation.z = Math.PI; head.add(smile);
+  if (o.cap) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.1, 18), lam(o.cap)); c.position.y = 0.2; head.add(c); const v = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.04, 0.22), lam(o.cap)); v.position.set(0, 0.16, 0.3); head.add(v); }
+  if (o.pack) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.46, 0.2), lam(o.pack)); b.position.set(0, 0.9, -0.3); body.add(b); }
+  g.add(blob(0.45 * s));
+  return { g, body, legs, arms, head, phase: 0 };
+}
+function animPerson(p, moving, dt, wave) {
+  p.phase += dt * (moving ? 11 : 0);
+  const a = moving ? Math.sin(p.phase) * 0.6 : 0;
+  p.legs[0].rotation.x = a; p.legs[1].rotation.x = -a;
+  p.arms[0].rotation.x = -a * 0.8; p.arms[1].rotation.x = a * 0.8;
+  if (wave) { p.arms[1].rotation.x = 0; p.arms[1].rotation.z = 2.6 + Math.sin(performance.now() / 150) * 0.35; } else p.arms[1].rotation.z = 0;
+}
+
+const CAR_COLORS = ['#ff4d4d', '#2f7cf6', '#ffc52e', '#3ccf6a', '#a259ff', '#ff8a3d', '#16c0c9', '#f45fa8'];
+function makeCar(color) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4, 0.85, 1.9), lam(color)); body.position.y = 0.72; g.add(body);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.75, 1.7), lam('#cdeeff')); cab.position.set(-0.25, 1.5, 0); g.add(cab);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 1.78), lam(color)); roof.position.set(-0.25, 1.92, 0); g.add(roof);
+  const wm = lam('#222');
+  for (const x of [-1.25, 1.25]) for (const z of [-0.92, 0.92]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.28, 16), wm); w.rotation.x = Math.PI / 2; w.position.set(x, 0.38, z); g.add(w); }
+  for (const z of [-0.6, 0.6]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, 0.36), new THREE.MeshBasicMaterial({ color: '#fff6b0' })); l.position.set(2.02, 0.85, z); g.add(l); }
+  const revMat = new THREE.MeshBasicMaterial({ color: '#555' });
+  for (const z of [-0.6, 0.6]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, 0.3), new THREE.MeshBasicMaterial({ color: '#d42020' })); l.position.set(-2.02, 0.85, z); g.add(l); const r = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, 0.16), revMat); r.position.set(-2.03, 0.62, z * 0.8); g.add(r); }
+  const beam = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.2), new THREE.MeshBasicMaterial({ color: '#fff3a0', transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending }));
+  beam.rotation.x = -Math.PI / 2; beam.position.set(6.4, 0.05, 0); beam.visible = night; g.add(beam);
+  g.userData.revMat = revMat; g.userData.beam = beam;
+  const sh = blob(1.2); sh.scale.set(1.9, 1, 1); g.add(sh);
+  return g;
+}
+function makeAmbulance() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.9, 1.95), lam('#ffffff')); body.position.y = 1.3; g.add(body);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(4.62, 0.25, 1.97), lam('#ef3b3b')); stripe.position.y = 1.0; g.add(stripe);
+  const win = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6, 1.6), lam('#9fd6ff')); win.position.set(2.31, 1.65, 0); g.add(win);
+  const crossTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#ef3b3b'; x.fillRect(24, 8, 16, 48); x.fillRect(8, 24, 48, 16); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  for (const z of [-0.99, 0.99]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), new THREE.MeshBasicMaterial({ map: crossTex })); p.position.set(-0.6, 1.6, z); if (z < 0) p.rotation.y = Math.PI; g.add(p); }
+  const wm = lam('#222');
+  for (const x of [-1.4, 1.4]) for (const z of [-0.94, 0.94]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.28, 16), wm); w.rotation.x = Math.PI / 2; w.position.set(x, 0.4, z); g.add(w); }
+  const red = new THREE.MeshBasicMaterial({ color: '#ff2020' }), blue = new THREE.MeshBasicMaterial({ color: '#2060ff' });
+  const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 0.6), red); l1.position.set(1.6, 2.38, -0.4); g.add(l1);
+  const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 0.6), blue); l2.position.set(1.6, 2.38, 0.4); g.add(l2);
+  g.userData.lights = [red, blue];
+  return g;
+}
+function makeBall() {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 64; const x = c.getContext('2d');
+  const cols = ['#ff4d4d', '#ffd34d', '#2f7cf6', '#3ccf6a'];
+  for (let i = 0; i < 8; i++) { x.fillStyle = cols[i % 4]; x.fillRect(i * 16, 0, 16, 64); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 14), new THREE.MeshLambertMaterial({ map: t }));
+  const g = new THREE.Group(); m.position.y = 0.4; g.add(m); g.add(blob(0.4)); g.userData.ball = m; return g;
+}
+function iconTex(kind, on) { // pedestrian signal faces
+  const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+  x.fillStyle = '#111'; x.fillRect(0, 0, 64, 64);
+  const col = kind === 'R' ? (on ? '#ff3030' : '#4a1414') : (on ? '#35ff6a' : '#123f1c');
+  x.fillStyle = col; x.strokeStyle = col; x.lineCap = 'round'; x.lineWidth = 7;
+  x.beginPath(); x.arc(32, 13, 7, 0, 7); x.fill();
+  if (kind === 'R') { x.beginPath(); x.moveTo(32, 22); x.lineTo(32, 42); x.moveTo(32, 26); x.lineTo(21, 40); x.moveTo(32, 26); x.lineTo(43, 40); x.moveTo(32, 42); x.lineTo(26, 58); x.moveTo(32, 42); x.lineTo(38, 58); x.stroke(); }
+  else { x.beginPath(); x.moveTo(33, 22); x.lineTo(30, 41); x.moveTo(32, 27); x.lineTo(20, 35); x.moveTo(32, 27); x.lineTo(44, 31); x.moveTo(30, 41); x.lineTo(20, 57); x.moveTo(30, 41); x.lineTo(42, 56); x.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const PED_TEX = { R1: iconTex('R', true), R0: iconTex('R', false), G1: iconTex('G', true), G0: iconTex('G', false) };
+
+/* ============ TRAFFIC SIGNALS ============ */
+class Signal {
+  constructor(cross, opts) {
+    this.c = cross; this.d = Object.assign({ cg: 7, cy: 2, ar1: 1.2, pg: 8, pf: 2.5, ar2: 1.5 }, opts || {}); this.t = 0;
+    this.road = HROADS[cross.road]; this.build();
+  }
+  get T() { const d = this.d; return d.cg + d.cy + d.ar1 + d.pg + d.ar2; }
+  phase() {
+    const d = this.d; let t = this.t % this.T;
+    if (t < d.cg) return { car: 'G', ped: 'R', left: d.cg - t };
+    t -= d.cg; if (t < d.cy) return { car: 'Y', ped: 'R' };
+    t -= d.cy; if (t < d.ar1) return { car: 'R', ped: 'R' };
+    t -= d.ar1; if (t < d.pg) return { car: 'R', ped: t > d.pg - d.pf ? 'F' : 'G' };
+    return { car: 'R', ped: 'R' };
+  }
+  stopLine(dir) { return dir > 0 ? this.c.X0 - 1.1 : this.c.X1 + 1.1; }
+  build() {
+    const c = this.c, r = this.road, pole = lam('#4a4f5a');
+    this.carLamps = []; this.pedFaces = [];
+    // car signals: eastbound (south lane) and westbound (north lane)
+    for (const dir of [1, -1]) {
+      const g = new THREE.Group();
+      const x = dir > 0 ? c.X0 - 1.6 : c.X1 + 1.6, z = dir > 0 ? r.Z1 + 0.7 : r.Z0 - 0.7;
+      g.position.set(x, 0, z);
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.6, 8), pole); p.position.y = 1.8; g.add(p);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.4, 0.5), lam('#2a2d33')); box.position.y = 4.1; g.add(box);
+      const lamps = {};
+      [['R', '#ff2a2a', 4.55], ['Y', '#ffc21a', 4.1], ['G', '#2bff6a', 3.65]].forEach(([k, col, y]) => {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), new THREE.MeshBasicMaterial({ color: col }));
+        m.position.set(-dir * 0.26, y, 0); g.add(m); lamps[k] = { m, on: new THREE.Color(col), off: new THREE.Color(col).multiplyScalar(0.18) };
+      });
+      this.carLamps.push(lamps); scene.add(g);
+    }
+    // pedestrian signals on both curbs, facing across the road
+    for (const side of [-1, 1]) {
+      const g = new THREE.Group();
+      g.position.set(c.X0 - 0.5, 0, side < 0 ? r.Z0 - 0.6 : r.Z1 + 0.6);
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.4, 8), pole); p.position.y = 1.2; g.add(p);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.62, 1.25, 0.4), lam('#2a2d33')); box.position.y = 2.75; g.add(box);
+      const face = side < 0 ? 1 : -1; // north pole faces south (+z), south pole faces north
+      const top = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.52), new THREE.MeshBasicMaterial({ map: PED_TEX.R1 }));
+      const bot = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.52), new THREE.MeshBasicMaterial({ map: PED_TEX.G0 }));
+      top.position.set(0, 3.05, face * 0.21); bot.position.set(0, 2.47, face * 0.21);
+      if (face < 0) { top.rotation.y = bot.rotation.y = Math.PI; }
+      g.add(top, bot); this.pedFaces.push({ top, bot }); scene.add(g);
+      // push button box (fun detail)
+      const btn = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.14), lam('#ffd34d')); btn.position.set(0, 1.1, face * 0.1); g.add(btn);
+    }
+  }
+  update(dt, now) {
+    this.t += dt; const ph = this.phase();
+    for (const L of this.carLamps) for (const k of ['R', 'Y', 'G']) L[k].m.material.color.copy(ph.car === k ? L[k].on : L[k].off);
+    const blinkOn = Math.floor(now * 2.5) % 2 === 0;
+    const red = ph.ped === 'R', green = ph.ped === 'G' || (ph.ped === 'F' && blinkOn);
+    for (const f of this.pedFaces) { f.top.material.map = red ? PED_TEX.R1 : PED_TEX.R0; f.bot.material.map = green ? PED_TEX.G1 : PED_TEX.G0; }
+  }
+}
+const signals = [new Signal(crossById('H2_226')), new Signal(crossById('H2_859'))];
+
+/* ============ MARKERS ============ */
+function starShape(r1, r2) { const s = new THREE.Shape(); for (let i = 0; i < 10; i++) { const r = i % 2 ? r2 : r1, a = i / 10 * Math.PI * 2 + Math.PI / 2; const x = Math.cos(a) * r, y = Math.sin(a) * r; i ? s.lineTo(x, y) : s.moveTo(x, y); } s.closePath(); return s; }
+const goal = new THREE.Group();
+const goalStar = new THREE.Mesh(new THREE.ExtrudeGeometry(starShape(0.9, 0.42), { depth: 0.25, bevelEnabled: false }), new THREE.MeshLambertMaterial({ color: '#ffd21f', emissive: '#a06a00' }));
+goalStar.position.y = 2.4; goal.add(goalStar);
+const goalRing = new THREE.Mesh(new THREE.RingGeometry(1.4, 1.9, 40), new THREE.MeshBasicMaterial({ color: '#ffd21f', transparent: true, opacity: 0.8, side: THREE.DoubleSide }));
+goalRing.rotation.x = -Math.PI / 2; goalRing.position.y = 0.04; goal.add(goalRing); scene.add(goal);
+const hint = new THREE.Group();
+const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.4, 16), new THREE.MeshLambertMaterial({ color: '#ff7a2f', emissive: '#7a2a00' }));
+arrow.rotation.x = Math.PI; hint.add(arrow);
+const hintGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: '#ffe14d', transparent: true, opacity: 0.35, depthWrite: false }));
+hintGlow.rotation.x = -Math.PI / 2; scene.add(hintGlow); scene.add(hint);
+
+/* ============ AUDIO & VOICE ============ */
+let soundOn = true, AC = null, sirenNodes = null;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function tone(freq, dur, type = 'sine', vol = 0.15, when = 0) {
+  const a = ac(); if (!a || !soundOn) return;
+  const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = freq;
+  const t = a.currentTime + when; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const sfx = {
+  honk() { tone(370, 0.45, 'square', 0.08); tone(466, 0.45, 'square', 0.06); },
+  win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.3, 'triangle', 0.18, i * 0.12)); },
+  fail() { tone(392, 0.25, 'triangle', 0.15); tone(330, 0.45, 'triangle', 0.15, 0.22); },
+  tick() { tone(1400, 0.04, 'square', 0.04); },
+  pop() { tone(880, 0.12, 'sine', 0.12); },
+};
+function sirenStart() {
+  const a = ac(); if (!a || sirenNodes) return;
+  const o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain(), g = a.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 850; lfo.frequency.value = 0.9; lg.gain.value = 260;
+  lfo.connect(lg).connect(o.frequency); g.gain.value = 0; o.connect(g).connect(a.destination); o.start(); lfo.start();
+  sirenNodes = { o, lfo, g };
+}
+function sirenVol(v) { if (sirenNodes && AC) sirenNodes.g.gain.setTargetAtTime(soundOn ? v : 0, AC.currentTime, 0.1); }
+function sirenStop() { if (sirenNodes) { try { sirenNodes.o.stop(); sirenNodes.lfo.stop(); } catch (e) { } sirenNodes = null; } }
+let voices = [];
+function loadVoices() { try { voices = speechSynthesis.getVoices() || []; } catch (e) { } }
+try { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; } catch (e) { }
+function pickVoice() { const want = lang === 'he' ? ['he', 'iw'] : ['en']; return voices.find(v => want.some(w => v.lang.toLowerCase().startsWith(w)) && /google|natural|online/i.test(v.name)) || voices.find(v => want.some(w => v.lang.toLowerCase().startsWith(w))); }
+function say(text) {
+  if (!soundOn) return;
+  try { const s = window.speechSynthesis; if (!s) return; s.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, '')); u.rate = lang === 'he' ? 0.9 : 0.95; u.pitch = 1.1; u.lang = lang === 'he' ? 'he-IL' : 'en-US'; const v = pickVoice(); if (v) u.voice = v; s.speak(u); } catch (e) { }
+}
+
+/* ============ LANGUAGE ============ */
+let lang = 'he'; try { lang = localStorage.getItem('ssh_lang') || 'he'; } catch (e) { }
+const STR = {
+  he: {
+    appTitle: 'גיבורי הדרך', sub: 'לומדים לחצות את הכביש בבטחה בעיר השטיח שלנו!',
+    keys: 'מקלדת: חיצים / WASD להליכה · רווח כדי להסתכל · M למפה. בטאבלט משתמשים בכפתורים.',
+    look: 'הסתכלו', langBtn: 'EN', menuLang: 'English', level: 'שלב', explore: 'לטייל!',
+    go: 'יוצאים לדרך!', again: 'נסו שוב ↺', menu: 'תפריט', next: 'לשלב הבא', playAgain: 'לשחק שוב', great: 'כל הכבוד!',
+    onRoad: '🚶 ממשיכים ללכת ישר עד הצד השני', ballHint: '💡 רמז: לכו למבוגר 👩', ballQ: '⚽ מה הדבר הבטוח לעשות?',
+    toCross: '🦓 לכו למעבר החצייה', siren: '🚨 סירנה! מחכים שהאמבולנס יעבור',
+    pedR: '🔴 איש אדום – מחכים על המדרכה', pedF: '⏳ מהבהב – לא מתחילים לחצות', pedG: '🟢 איש ירוק – מסתכלים וחוצים',
+    coming: '🚗 מגיעה מכונית – מחכים…', clear: '✅ הכביש פנוי – אפשר לחצות!', pressLook: '👀 אין רמזור: קודם לוחצים "הסתכלו"',
+    curb: '✋ עוצרים בשפת המדרכה', lookL: '⬅️ שמאלה…', lookR: 'ימינה… ➡️', busy: '🚗 מכונית מגיעה! מחכים…', allClear: '✅ פנוי!',
+    sayLook: 'שמאלה. ימינה. ושוב שמאלה.', ohBall: 'אוי! הכדור שלי! ⚽', here: 'אני כאן! 👋', wee: '🚨 ווי-וו!',
+    safeCross: n => `חצייה בטוחה! ⭐ × ${n}`, safeCount: 'חציות בטוחות: ',
+    rev: '🚙 אורות לבנים = רכב נוסע אחורה! עוצרים ומחכים', revIdle: '🅿️ בחניון הולכים לאט ובזהירות', beep: 'ביפ… ביפ…',
+    holdHand: '🧑 קודם הולכים למבוגר ונותנים יד', hand: '🤝 יד ביד!', handOK: '🤝 יד ביד – עכשיו חוצים יחד',
+    vestNeed: '🦺 חושך! קודם לובשים את האפוד הזוהר', vestOn: '🦺 עכשיו רואים אותך!', loading: 'פורסים את השטיח… 🚗',
+  },
+  en: {
+    appTitle: 'Safe Street Heroes', sub: 'Learn to cross the street safely in our carpet town!',
+    keys: 'Keyboard: arrows / WASD to walk · Space to look · M for map. On a tablet, use the buttons.',
+    look: 'LOOK', langBtn: 'עב', menuLang: 'עברית', level: 'Level', explore: 'Explore!',
+    go: 'Let\'s go!', again: 'Try again ↺', menu: 'Menu', next: 'Next level', playAgain: 'Play again', great: 'Great job!',
+    onRoad: '🚶 Keep walking straight across', ballHint: '💡 Hint: go to the grown-up 👩', ballQ: '⚽ What is the safe thing to do?',
+    toCross: '🦓 Walk to the zebra crossing', siren: '🚨 Siren! Wait for the ambulance to pass',
+    pedR: '🔴 Red man — wait on the sidewalk', pedF: '⏳ Blinking — don\'t start, wait', pedG: '🟢 Green man — look, then walk',
+    coming: '🚗 A car is coming — wait…', clear: '✅ Road is clear — you can cross!', pressLook: '👀 No traffic light: press LOOK first',
+    curb: '✋ Stop at the edge', lookL: '⬅️ Left…', lookR: 'Right… ➡️', busy: '🚗 Car coming! Wait…', allClear: '✅ All clear!',
+    sayLook: 'Left. Right. Left.', ohBall: 'Oh no! My ball! ⚽', here: 'I\'m over here! 👋', wee: '🚨 Wee-woo!',
+    safeCross: n => `Safe crossing! ⭐ × ${n}`, safeCount: 'Safe crossings: ',
+    rev: '🚙 White lights = car backing up! Stop and wait', revIdle: '🅿️ Walk slowly and carefully in the parking lot', beep: 'Beep… beep…',
+    holdHand: '🧑 First go to the grown-up and hold hands', hand: '🤝 Hand in hand!', handOK: '🤝 Hand in hand — now cross together',
+    vestNeed: '🦺 It\'s dark! Put on the reflective vest first', vestOn: '🦺 Now drivers can see you!', loading: 'Rolling out the carpet… 🚗',
+  },
+};
+const tr = k => STR[lang][k];
+
+/* ============ LEVELS ============ */
+const LEVELS = [
+  { id: 1, icon: '🚦', start: [247, 990], goal: [244, 872], lanes: ['H2'], spawn: [2.2, 4.5], hintCross: 'H2_226',
+    en: { title: 'The Traffic Light', intro: 'Walk to the shop across the street. Go to the zebra crossing, and wait for the GREEN man before you cross.', short: 'Cross at the traffic light. Wait for the 🟢 green man!', win: 'You waited for the green man and crossed on the zebra crossing. Super safe!' },
+    he: { title: 'הרמזור', intro: 'לכו לחנות שמעבר לכביש. גשו למעבר החצייה, וחכו לאיש הירוק לפני שחוצים.', short: 'חוצים ברמזור. מחכים ל🟢 איש הירוק!', win: 'חיכית לאיש הירוק וחצית במעבר החצייה. מעולה!' } },
+  { id: 2, icon: '👀', start: [578, 1236], goal: [590, 1129], lanes: ['H3'], spawn: [4, 9], hintCross: 'H3_564',
+    en: { title: 'Look Left, Right, Left', intro: 'There is no traffic light here. Stop at the edge of the zebra crossing, press LOOK, and cross only when no cars are coming.', short: 'No traffic light: stop at the edge, press 👀 LOOK, cross when it is clear.', win: 'You stopped, looked left, right and left again, and waited for a clear road. Great job!' },
+    he: { title: 'שמאלה, ימינה, שמאלה', intro: 'כאן אין רמזור. עוצרים בשפת מעבר החצייה, לוחצים "הסתכלו", וחוצים רק כשלא מגיעות מכוניות.', short: 'אין רמזור: עוצרים, לוחצים 👀 הסתכלו, וחוצים כשהכביש פנוי.', win: 'עצרת, הסתכלת שמאלה, ימינה ושוב שמאלה, וחיכית לכביש פנוי. כל הכבוד!' } },
+  { id: 3, icon: '🦓', start: [482, 338], goal: [384, 226], lanes: ['H1'], spawn: [4, 8.5], hintCross: 'H1_356',
+    en: { title: 'Find the Crossing', intro: 'You want to get to the other side. Don\'t cross just anywhere! Walk to the zebra crossing first. Follow the orange arrow.', short: 'Don\'t cross just anywhere — walk to the 🦓 zebra crossing first.', win: 'You walked all the way to the zebra crossing. That\'s what safe walkers do!' },
+    he: { title: 'מוצאים את המעבר', intro: 'צריך להגיע לצד השני. לא חוצים סתם איפה שרוצים! קודם הולכים למעבר החצייה. עקבו אחרי החץ הכתום.', short: 'לא חוצים סתם – קודם הולכים ל🦓 מעבר החצייה.', win: 'הלכת עד מעבר החצייה. ככה הולכי רגל זהירים עושים!' } },
+  { id: 4, icon: '🚑', start: [880, 990], goal: [880, 872], lanes: ['H2'], spawn: [3, 6], hintCross: 'H2_859', ambulance: true, sig: { pg: 14, pf: 3 },
+    en: { title: 'Siren!', intro: 'Wait for the green man… but listen carefully! If an ambulance with a siren is coming, let it pass first, even on green.', short: 'Green man? Still look and listen! 🚑 Sirens go first.', win: 'You let the ambulance pass before crossing. Looking and listening keeps you safe!' },
+    he: { title: 'סירנה!', intro: 'חכו לאיש הירוק… אבל הקשיבו טוב! אם מגיע אמבולנס עם סירנה, נותנים לו לעבור קודם, גם כשהאיש ירוק.', short: 'איש ירוק? עדיין מסתכלים ומקשיבים! 🚑 סירנה עוברת ראשונה.', win: 'נתת לאמבולנס לעבור לפני שחצית. להסתכל ולהקשיב – זה שומר עלינו!' } },
+  { id: 5, icon: '⚽', start: [214, 1236], parent: [118, 1250], ball: { from: [216, 1230], to: [224, 1178] }, lanes: ['H3'], spawn: [2.2, 4.5],
+    en: { title: 'The Ball', intro: 'You are playing with your ball near the road. What is the SAFE thing to do if it rolls into the street?', short: 'Your ball rolled into the road! What is the safe thing to do?', win: 'Yes! Never run into the road after a ball. A grown-up will get it when it is safe.' },
+    he: { title: 'הכדור', intro: 'אתם משחקים בכדור ליד הכביש. מה הדבר הבטוח לעשות אם הכדור מתגלגל לכביש?', short: 'הכדור התגלגל לכביש! מה הדבר הבטוח לעשות?', win: 'נכון! אף פעם לא רצים לכביש אחרי כדור. מבוגר יביא אותו כשזה בטוח.' } },
+  { id: 6, icon: '🅿️', start: [50, 512], goal: [256, 500], lanes: [], spawn: [5, 9], rev: { x: 120, y: 470, backTo: 522, driveTo: 360 },
+    en: { title: 'The Parking Lot', intro: 'Walk through the parking lot. Watch out: if a car turns on WHITE lights at the back and beeps, it is backing up! Stop and wait until it drives away.', short: 'Parking lot: white lights at the back = car backing up. Stop!', win: 'You stopped and waited for the car to drive out. Drivers can\'t always see kids. Great job!' },
+    he: { title: 'רכב בחניון', intro: 'עוברים דרך החניון. שימו לב: אם לרכב נדלקים אורות לבנים מאחור והוא מצפצף – הוא נוסע אחורה! עוצרים ומחכים עד שהוא נוסע.', short: 'בחניון: אורות לבנים מאחור = רכב נוסע אחורה. עוצרים!', win: 'עצרת וחיכית שהרכב ייצא מהחניה. הנהג לא תמיד רואה ילדים. כל הכבוד!' } },
+  { id: 7, icon: '🤝', start: [420, 1240], goal: [388, 1131], adult: [478, 1252], lanes: ['H3'], spawn: [4, 9], hintCross: 'H3_350',
+    en: { title: 'Hand in Hand', intro: 'Little kids don\'t cross the road alone. First go to the grown-up and hold hands. Then cross together at the zebra crossing.', short: 'First go to the grown-up 🧑 and hold hands, then cross together.', win: 'You crossed together, hand in hand. That\'s how little kids cross the road!' },
+    he: { title: 'יד ביד', intro: 'ילדים קטנים לא חוצים את הכביש לבד. קודם הולכים למבוגר ונותנים יד, ואז חוצים יחד במעבר החצייה.', short: 'קודם הולכים למבוגר 🧑 ונותנים יד, ואז חוצים יחד.', win: 'חציתם יחד, יד ביד. ככה ילדים קטנים חוצים את הכביש!' } },
+  { id: 8, icon: '🌙', start: [742, 338], goal: [750, 247], vest: [690, 352], night: true, lanes: ['H1'], spawn: [4, 9], hintCross: 'H1_729',
+    en: { title: 'At Night', intro: 'It\'s dark now! Drivers can\'t see well at night. First put on the reflective vest, then look and cross carefully.', short: 'Dark! Put on the 🦺 reflective vest, then look and cross.', win: 'With your reflective vest, drivers can see you from far away. Excellent!' },
+    he: { title: 'בלילה', intro: 'עכשיו חושך! בלילה הנהגים לא רואים טוב. קודם לובשים את האפוד הזוהר, ואז מסתכלים וחוצים בזהירות.', short: 'חושך! קודם לובשים 🦺 אפוד זוהר, ואז מסתכלים וחוצים.', win: 'עם האפוד הזוהר הנהגים רואים אותך מרחוק. מעולה!' } },
+  { id: 9, icon: '🏙️', free: true, start: [247, 990], lanes: ['H1', 'H2', 'H3'], spawn: [4, 9],
+    en: { title: 'Free Walk', intro: 'Walk anywhere in the town. Every safe crossing earns a star! Remember: zebra crossings, green man, look left-right-left.', short: 'Walk around town. Every safe crossing = ⭐' },
+    he: { title: 'טיול חופשי', intro: 'טיילו בכל העיר. כל חצייה בטוחה שווה כוכב! זכרו: מעבר חצייה, איש ירוק, ושמאלה-ימינה-שמאלה.', short: 'טיילו בעיר. כל חצייה בטוחה = ⭐' } },
+];
+for (const lv of LEVELS) for (const k of ['title', 'intro', 'short', 'win']) Object.defineProperty(lv, k, { get() { return this[lang][k]; } });
+let progress = {}; try { progress = JSON.parse(localStorage.getItem('ssh_progress2') || '{}'); } catch (e) { }
+function saveProgress() { try { localStorage.setItem('ssh_progress2', JSON.stringify(progress)); } catch (e) { } }
+
+const MSGS = {
+  en: {
+    red: ['🛑', 'Stop! The man is RED', 'Wait on the sidewalk until the little man turns GREEN. Then look, and cross.'],
+    flash: ['⏳', 'The green man is blinking', 'Blinking means it is about to turn red. Don\'t start crossing — wait for the next green.'],
+    look: ['👀', 'Look first!', 'Before you cross, stop at the edge and look LEFT, RIGHT and LEFT again. Press the LOOK button.'],
+    car: ['🚗', 'A car was coming!', 'Wait until the road is clear. Only cross when no cars are coming.'],
+    amb: ['🚑', 'Ambulance coming!', 'When you hear a siren, wait — even on a green light. Let the ambulance pass first.'],
+    notCross: ['🦓', 'Use the zebra crossing', 'Only cross the road at the zebra crossing — the white stripes.'],
+    leave: ['↕️', 'Stay on the stripes', 'Walk straight across, inside the white stripes. Don\'t walk along the road.'],
+    ball: ['⚽', 'Never run after a ball!', 'Don\'t go into the road to get a ball. Ask a grown-up to help.'],
+    hit: ['📣', 'BEEEP! Too close!', 'That car could not see you in time. Always wait at the edge and look before crossing.'],
+    reverse: ['🚙', 'That car is backing up!', 'White lights at the back and a beeping sound mean the car is going backwards. The driver may not see you — stop and wait until it drives away.'],
+    adult: ['🧑', 'Cross with a grown-up', 'Little kids cross the road with a grown-up, holding hands. Go to the grown-up first.'],
+    vest: ['🦺', 'In the dark, drivers can\'t see you!', 'At night drivers can\'t see well. Put on a reflective vest so they can see you.'],
+  },
+  he: {
+    red: ['🛑', 'עצרו! האיש אדום', 'מחכים על המדרכה עד שהאיש הקטן נהיה ירוק. אחר כך מסתכלים וחוצים.'],
+    flash: ['⏳', 'האיש הירוק מהבהב', 'הבהוב אומר שעוד רגע יהיה אדום. לא מתחילים לחצות – מחכים לירוק הבא.'],
+    look: ['👀', 'קודם מסתכלים!', 'לפני שחוצים, עוצרים בשפת המדרכה ומסתכלים שמאלה, ימינה ושוב שמאלה. לחצו על "הסתכלו".'],
+    car: ['🚗', 'הגיעה מכונית!', 'מחכים עד שהכביש פנוי. חוצים רק כשלא מגיעות מכוניות.'],
+    amb: ['🚑', 'אמבולנס מגיע!', 'כששומעים סירנה – מחכים, גם כשהאיש ירוק. נותנים לאמבולנס לעבור קודם.'],
+    notCross: ['🦓', 'חוצים רק במעבר חצייה', 'חוצים את הכביש רק במעבר החצייה – בפסים הלבנים.'],
+    leave: ['↕️', 'נשארים על הפסים', 'הולכים ישר לצד השני, בתוך הפסים הלבנים. לא הולכים לאורך הכביש.'],
+    ball: ['⚽', 'לא רצים אחרי כדור!', 'לא נכנסים לכביש כדי להביא כדור. מבקשים עזרה ממבוגר.'],
+    hit: ['📣', 'טוּוּט! קרוב מדי!', 'הנהג לא הספיק לראות אותך. תמיד מחכים בשפת המדרכה ומסתכלים לפני שחוצים.'],
+    reverse: ['🚙', 'הרכב נוסע אחורה!', 'אורות לבנים מאחור וצפצוף אומרים שהרכב נוסע לאחור. הנהג לא תמיד רואה ילדים – עוצרים ומחכים שייסע.'],
+    adult: ['🧑', 'חוצים עם מבוגר', 'ילדים קטנים חוצים את הכביש עם מבוגר, יד ביד. קודם הולכים למבוגר.'],
+    vest: ['🦺', 'בחושך לא רואים אותך!', 'בלילה הנהגים לא רואים טוב. לובשים אפוד זוהר כדי שיראו אותך.'],
+  },
+};
+
+/* ============ GAME STATE ============ */
+let L = null, cars = [], lanes = [], paused = true, overview = false, fails = 0, now = 0, safeCount = 0, introOpen = false;
+const child = { p: makePerson({ shirt: '#ff5a3c', pants: '#2f4b8f', skin: '#f5c9a0', hair: '#5a3a1e', cap: '#ffd21f', pack: '#2fbf4a' }), x: 0, z: 0, face: Math.PI, onRoad: false, lastLook: -99, look: null, curbHold: 0, cross: null, entrySide: 0, safe: null };
+scene.add(child.p.g);
+const parent = { p: makePerson({ shirt: '#7b61ff', pants: '#333a48', skin: '#e8b48a', hair: '#2b1a10', scale: 1.38 }) }; scene.add(parent.p.g);
+const ball = makeBall(); scene.add(ball);
+let amb = null, ambDone = false, ballAnim = null, idleT = 0, lastTick = 0;
+
+function laneList(ids) {
+  const out = [];
+  for (const id of ids) { const r = HROADS[id]; out.push({ road: id, dir: 1, z: r.zc + r.half / 2, X0: r.X0 - 3, X1: r.X1 + 3, next: rand(0, 2) }); out.push({ road: id, dir: -1, z: r.zc - r.half / 2, X0: r.X0 - 3, X1: r.X1 + 3, next: rand(0, 2) }); }
+  return out;
+}
+function spawnCar(lane) {
+  const startX = lane.dir > 0 ? lane.X0 : lane.X1;
+  for (const c of cars) if (c.lane === lane && Math.abs(c.x - startX) < 8) return false;
+  const g = makeCar(CAR_COLORS[(Math.random() * CAR_COLORS.length) | 0]);
+  g.rotation.y = lane.dir > 0 ? 0 : Math.PI; scene.add(g);
+  const vmax = rand(7.5, 10);
+  cars.push({ g, lane, road: lane.road, dir: lane.dir, x: startX, z: lane.z, v: vmax, vmax, len: 4, wid: 1.9, acc: 5, dec: 9, amb: false });
+  return true;
+}
+function spawnAmbulance() {
+  const r = HROADS.H2; const g = makeAmbulance(); scene.add(g);
+  amb = { g, lane: null, road: 'H2', dir: 1, x: r.X0 - 6, z: r.zc, v: 15, vmax: 15, len: 4.6, wid: 1.8, acc: 6, dec: 12, amb: true };
+  cars.push(amb); sirenStart(); showBubble2 = { text: tr('wee'), t: 3 };
+}
+function clearCars() { for (const c of cars) scene.remove(c.g); cars = []; if (amb) { amb = null; } sirenStop(); }
+
+function updateCar(car, dt) {
+  const d = car.dir, front = car.x + d * car.len / 2;
+  let dist = 1e9;
+  if (!car.amb) {
+    for (const o of cars) {
+      if (o === car || o.amb || o.lane !== car.lane) continue;
+      const g = d * ((o.x - d * o.len / 2) - front);
+      if (g > -1 && g - 1.6 < dist) dist = g - 1.6;
+    }
+    for (const s of signals) {
+      if (s.c.road !== car.road) continue;
+      const ph = s.phase(); if (ph.car === 'G') continue;
+      const g = d * (s.stopLine(d) - front);
+      if (g < -0.3) continue;
+      if (ph.car === 'Y' && g < 3.5) continue;
+      if (g < dist) dist = g;
+    }
+  }
+  // yield to the child if standing in the car's path
+  const walkers = [child]; if (parent.p.g.visible && child.hand) walkers.push({ x: parent.p.g.position.x, z: parent.p.g.position.z });
+  for (const w of walkers) if (Math.abs(w.z - car.z) < car.wid / 2 + 0.75 && isRoad(w.x, w.z)) {
+    const g = d * (w.x - front) - 1.3;
+    if (g > -1.6 && g < dist) dist = Math.max(0, g);
+  }
+  const target = dist <= 0.05 ? 0 : Math.min(car.vmax, Math.sqrt(2 * car.dec * Math.max(0, dist)));
+  car.v = target > car.v ? Math.min(target, car.v + car.acc * dt) : Math.max(target, car.v - car.dec * 1.8 * dt);
+  car.x += d * car.v * dt;
+  car.g.position.set(car.x, 0, car.z);
+}
+function stepTraffic(dt) {
+  for (const s of signals) s.update(dt, now);
+  for (const ln of lanes) { ln.next -= dt; if (ln.next <= 0) { if (spawnCar(ln)) ln.next = rand(L.spawn[0], L.spawn[1]); else ln.next = 0.6; } }
+  for (const c of cars) { updateCar(c, dt); c.g.userData.beam && (c.g.userData.beam.visible = night); }
+  for (let i = cars.length - 1; i >= 0; i--) {
+    const c = cars[i]; const out = c.dir > 0 ? c.x > 56 : c.x < -56;
+    if (out) { scene.remove(c.g); if (c === amb) { amb = null; ambDone = true; sirenStop(); } cars.splice(i, 1); }
+  }
+}
+function dangerAt(c, onlyAmb, margin = 1) {
+  if (c.axis !== 'h') return null;
+  const sig = signals.find(s => s.c === c), carRed = sig && sig.phase().car === 'R';
+  for (const car of cars) {
+    if (car.road !== c.road || (onlyAmb && !car.amb)) continue;
+    const front = car.x + car.dir * car.len / 2, g = car.dir * (c.cx - front);
+    if (car.x + car.len / 2 > c.X0 - 0.3 && car.x - car.len / 2 < c.X1 + 0.3 && Math.abs(car.z - c.cz) < 5) return car; // a car is standing on the crossing
+    if (carRed && !car.amb) { const toLine = car.dir * (sig.stopLine(car.dir) - front); if (toLine > -0.3 && car.v * car.v / (2 * car.dec) < toLine + 0.5) continue; }
+    const reach = car.amb ? 70 : Math.max(8, car.v * 2.2) * margin;
+    if ((car.v > 1 || car.amb) && g > -(car.len + 1) && g < reach) return car;
+  }
+  return null;
+}
+
+/* ============ EXTRA SITUATIONS: parking lot, hand in hand, night ============ */
+let rev = null;
+// reflective vest: one to pick up, one worn by the child
+function makeVest(r1, r2) {
+  const g = new THREE.Group();
+  const v = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, 0.5, 18, 1, true), new THREE.MeshLambertMaterial({ color: '#d4ff1f', emissive: '#a8d400', side: THREE.DoubleSide }));
+  g.add(v);
+  for (const y of [-0.1, 0.1]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(r1 + 0.012, r2 + 0.012, 0.05, 18, 1, true), new THREE.MeshBasicMaterial({ color: '#f4f4ff', side: THREE.DoubleSide })); st.position.y = y; g.add(st); }
+  return g;
+}
+const vestWorn = makeVest(0.255, 0.295); vestWorn.position.y = 0.86; vestWorn.visible = false; child.p.body.add(vestWorn);
+const vestPick = new THREE.Group();
+{ const v = makeVest(0.38, 0.44); v.position.y = 1.1; vestPick.add(v); vestPick.userData.v = v;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.15, 32), new THREE.MeshBasicMaterial({ color: '#d4ff1f', transparent: true, opacity: 0.8, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; vestPick.add(ring); }
+vestPick.visible = false; scene.add(vestPick);
+// street lamp for the night level
+const nightLamp = new THREE.Group();
+{ const p = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 5, 8), lam('#59606e')); p.position.y = 2.5; nightLamp.add(p);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.12), lam('#59606e')); arm.position.set(0.8, 5, 0); nightLamp.add(arm);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), new THREE.MeshBasicMaterial({ color: '#fff4b0' })); bulb.position.set(1.5, 4.8, 0); nightLamp.add(bulb);
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(5, 32), new THREE.MeshBasicMaterial({ color: '#ffe9a0', transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending }));
+  pool.rotation.x = -Math.PI / 2; pool.position.set(1.5, 0.06, 0); nightLamp.add(pool); }
+nightLamp.visible = false; scene.add(nightLamp);
+
+function setNight(on) {
+  night = on;
+  const bg = on ? '#0b1230' : '#bfe4ff';
+  scene.background.set(bg); scene.fog.color.set(bg);
+  hemi.intensity = on ? 0.45 : 1.6; sun.intensity = on ? 0.25 : 1.6;
+  const tint = on ? '#46518a' : '#ffffff';
+  carpet.material.color.set(tint);
+  for (const s of sprites) s.mats[0].color.set(tint), s.mats[1].color.set(on ? '#3a4370' : '#f3e6cf');
+  floor.material.color.set(on ? '#3b3040' : '#d8b07a');
+  nightLamp.visible = on;
+}
+function setupExtras() {
+  setNight(!!L.night);
+  if (rev) { scene.remove(rev.g); rev = null; }
+  if (L.rev) {
+    const g = makeCar('#ff8a3d'); g.rotation.y = Math.PI / 2; scene.add(g);
+    rev = { g, x: wx(L.rev.x), z: wz(L.rev.y), st: 'park', t: 0, beep: 0 }; g.position.set(rev.x, 0, rev.z);
+  }
+  vestPick.visible = !!L.vest; if (L.vest) vestPick.position.set(wx(L.vest[0]), 0, wz(L.vest[1]));
+  const hc = L.hintCross && crossById(L.hintCross);
+  if (hc) nightLamp.position.set(hc.X1 + 2.4, 0, hc.Z0 - 1.0);
+  if (L.adult) { parent.p.g.visible = true; parent.p.g.position.set(wx(L.adult[0]), 0, wz(L.adult[1])); parent.p.g.rotation.y = -Math.PI / 2; }
+  child.p.arms[0].rotation.z = 0; parent.p.arms[1].rotation.z = 0;
+  // in every scene (except the ball and "go to the grown-up" scenes) the child walks hand in hand with a grown-up
+  L.withAdult = !L.ball && !L.adult;
+  if (L.withAdult) { child.hand = true; parent.p.g.visible = true; const a = child.face; parent.p.g.position.set(child.x - Math.cos(a), 0, child.z + Math.sin(a)); parent.p.g.rotation.y = a; }
+}
+function updateRev(dt) {
+  if (!rev) return;
+  rev.t += dt;
+  const backing = rev.st === 'lights' || rev.st === 'back';
+  if (rev.st === 'park' && (child.x > wx(L.rev.x - 52) || now > 5)) { rev.st = 'lights'; rev.t = 0; }
+  else if (rev.st === 'lights' && rev.t > 1.6) { rev.st = 'back'; rev.t = 0; }
+  else if (rev.st === 'back') { rev.z += 2.3 * dt; if (rev.z >= wz(L.rev.backTo)) { rev.z = wz(L.rev.backTo); rev.st = 'turn'; rev.t = 0; } }
+  else if (rev.st === 'turn') { rev.g.rotation.y = Math.PI / 2 * Math.max(0, 1 - rev.t / 0.8); if (rev.t > 0.8) { rev.st = 'drive'; rev.t = 0; } }
+  else if (rev.st === 'drive') { rev.x += Math.min(5.5, 1 + rev.t * 4) * dt; if (rev.x > wx(L.rev.driveTo)) { rev.st = 'gone'; scene.remove(rev.g); } }
+  rev.g.position.set(rev.x, 0, rev.z);
+  rev.g.userData.revMat.color.set(backing ? '#ffffff' : '#555');
+  if (backing) { rev.beep -= dt; if (rev.beep <= 0) { rev.beep = 0.55; tone(1050, 0.18, 'square', 0.05); } }
+  if (night) rev.g.userData.beam.visible = true;
+}
+function revZone() {
+  if (!rev) return false;
+  const dx = child.x - rev.x, dz = child.z - rev.z;
+  if (rev.st === 'lights' || rev.st === 'back') return Math.abs(dx) < 1.5 && child.z > rev.z - 2.3 && child.z < wz(L.rev.backTo) + 1.8;
+  if (rev.st === 'turn') return Math.abs(dx) < 2.5 && Math.abs(dz) < 2.5;
+  if (rev.st === 'drive') return dx > -2.4 && child.x < wx(L.rev.driveTo) && Math.abs(dz) < 1.5;
+  return false;
+}
+function updateAdult(dt) {
+  const pg = parent.p.g;
+  if (!child.hand) { animPerson(parent.p, false, dt, true); return; }
+  const a = child.face, tx = child.x - Math.cos(a) * 1.0, tz = child.z + Math.sin(a) * 1.0;
+  const moving = Math.hypot(tx - pg.position.x, tz - pg.position.z) > 0.05;
+  pg.position.x += (tx - pg.position.x) * Math.min(1, dt * 10); pg.position.z += (tz - pg.position.z) * Math.min(1, dt * 10);
+  pg.rotation.y = a;
+  animPerson(parent.p, moving, dt, false);
+  parent.p.arms[1].rotation.z = 0.45; parent.p.arms[1].rotation.x = 0;
+  child.p.arms[0].rotation.z = -0.55; child.p.arms[0].rotation.x = 0;
+}
+
+/* ============ LANGUAGE UI ============ */
+function applyLang() {
+  document.body.className = lang; document.documentElement.lang = lang; document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+  document.title = tr('appTitle');
+  $('mTitle').textContent = tr('appTitle'); $('mSub').textContent = tr('sub'); $('mKeys').textContent = tr('keys');
+  $('lookLbl').textContent = tr('look'); $('btnLang').textContent = tr('langBtn'); $('menuLang').textContent = tr('menuLang'); $('loading').textContent = tr('loading');
+  if (L && $('menu').style.display !== 'flex') { $('lvTitle').textContent = `${L.icon} ${L.free ? '' : tr('level') + ' ' + L.id + ': '}${L.title}`; $('lvText').textContent = L.short; }
+  else if ($('menu').style.display === 'flex') renderMenu();
+}
+function toggleLang() { lang = lang === 'he' ? 'en' : 'he'; try { localStorage.setItem('ssh_lang', lang); } catch (e) { } try { speechSynthesis.cancel(); } catch (e) { } applyLang(); }
+
+/* ============ LEVEL FLOW ============ */
+function setChild(px, py) { child.hand = false; child.vest = false; if (typeof vestWorn !== 'undefined') vestWorn.visible = false; child.x = wx(px); child.z = wz(py); child.face = Math.PI; child.onRoad = false; child.cross = null; child.look = null; child.curbHold = 0; child.lastLook = -99; child.safe = { x: child.x, z: child.z }; child.p.head.rotation.y = 0; }
+function startLevel(lv, retry) {
+  L = lv; if (!retry) fails = 0;
+  clearCars(); ambDone = false; ballAnim = null; idleT = 0; safeCount = 0; now = 0;
+  signals[0].d = Object.assign({ cg: 7, cy: 2, ar1: 1.2, pg: 8, pf: 2.5, ar2: 1.5 });
+  signals[1].d = Object.assign({ cg: 7, cy: 2, ar1: 1.2, pg: 8, pf: 2.5, ar2: 1.5 }, L.sig || {});
+  lanes = laneList(L.lanes);
+  for (let i = 0; i < 260; i++) stepTraffic(0.05); // warm up traffic
+  signals[0].t = 0; signals[1].t = L.id === 4 ? 0 : 6;
+  setChild(L.start[0], L.start[1]);
+  goal.visible = !!L.goal; if (L.goal) goal.position.set(wx(L.goal[0]), 0, wz(L.goal[1]));
+  const hc = L.hintCross && crossById(L.hintCross);
+  hint.visible = hintGlow.visible = !!hc;
+  if (hc) { hint.position.set(hc.cx, 3.2, hc.cz); hintGlow.position.set(hc.cx, 0.05, hc.cz); hintGlow.scale.set(hc.X1 - hc.X0 + 0.6, hc.Z1 - hc.Z0 + 0.6, 1); }
+  parent.p.g.visible = !!L.parent; if (L.parent) { parent.p.g.position.set(wx(L.parent[0]), 0, wz(L.parent[1])); parent.p.g.rotation.y = Math.PI / 2; }
+  ball.visible = !!L.ball; if (L.ball) ball.position.set(wx(L.ball.from[0]), 0, wz(L.ball.from[1]));
+  setupExtras();
+  $('lvTitle').textContent = `${L.icon} ${L.free ? '' : tr('level') + ' ' + L.id + ': '}${L.title}`;
+  $('lvText').textContent = L.short;
+  $('menu').style.display = 'none';
+  overview = false; snapCam = true;
+  if (retry) { paused = false; hideDlg(); if (L.ball) startBall(); return; }
+  paused = true; introOpen = true;
+  showDlg(L.icon, (L.free ? '' : tr('level') + ' ' + L.id + ': ') + L.title, L.intro, [{ label: tr('go'), fn: () => { introOpen = false; hideDlg(); paused = false; ac(); if (L.ball) startBall(); } }]);
+  say(L.title + '. ' + L.intro);
+}
+function startBall() { ballAnim = { t: -0.6 }; bubble = { text: tr('ohBall'), t: 2.6 }; }
+function fail(type) {
+  if (paused) return; paused = true; fails++;
+  const [e, t, txt] = MSGS[lang][type]; if (type === 'reverse') sfx.honk(); sfx.fail(); if (type === 'hit') sfx.honk();
+  sirenVol(0);
+  say(t + '. ' + txt);
+  if (L.free) showDlg(e, t, txt, [{ label: tr('again'), fn: () => { hideDlg(); child.x = child.safe.x; child.z = child.safe.z; child.onRoad = false; child.cross = null; child.curbHold = 0; child.lastLook = -99; paused = false; } }, { label: tr('menu'), cls: 'alt', fn: showMenu }]);
+  else showDlg(e, t, txt, [{ label: tr('again'), fn: () => startLevel(L, true) }, { label: tr('menu'), cls: 'alt', fn: showMenu }]);
+}
+function win() {
+  if (paused) return; paused = true; sfx.win(); sirenStop();
+  const stars = fails === 0 ? 3 : fails === 1 ? 2 : 1;
+  progress[L.id] = Math.max(progress[L.id] || 0, stars); saveProgress();
+  const next = LEVELS.find(l => l.id === L.id + 1);
+  say(tr('great') + ' ' + L.win);
+  showDlg('⭐'.repeat(stars) + '☆'.repeat(3 - stars), tr('great'), L.win,
+    [...(next ? [{ label: tr('next'), fn: () => startLevel(next) }] : []), { label: tr('playAgain'), cls: 'orange', fn: () => startLevel(L) }, { label: tr('menu'), cls: 'alt', fn: showMenu }]);
+}
+function showDlg(emoji, title, text, buttons) {
+  const c = $('dlgCard'); c.innerHTML = '';
+  const b = document.createElement('div'); b.className = 'big'; b.textContent = emoji; c.appendChild(b);
+  const h = document.createElement('h2'); h.textContent = title; c.appendChild(h);
+  const p = document.createElement('p'); p.textContent = text; c.appendChild(p);
+  const bs = document.createElement('div'); bs.className = 'btns';
+  for (const bt of buttons) { const e = document.createElement('button'); e.className = 'b ' + (bt.cls || ''); e.textContent = bt.label; e.onclick = () => { ac(); sfx.pop(); bt.fn(); }; bs.appendChild(e); }
+  c.appendChild(bs); $('dlg').style.display = 'flex';
+}
+function hideDlg() { $('dlg').style.display = 'none'; }
+function showMenu() {
+  hideDlg(); setNight(false); if (rev) { scene.remove(rev.g); rev = null; } paused = true; sirenStop(); try { speechSynthesis.cancel(); } catch (e) { }
+  renderMenu();
+  $('menu').style.display = 'flex';
+}
+function renderMenu() {
+  const box = $('levels'); box.innerHTML = '';
+  for (const lv of LEVELS) {
+    const b = document.createElement('button'); b.className = 'lv' + (lv.free ? ' free' : '');
+    const st = progress[lv.id] || 0;
+    b.innerHTML = `<div class="ic">${lv.icon}</div><div class="t">${lv.free ? '' : lv.id + '. '}${lv.title}</div><div class="s">${lv.free ? tr('explore') : '⭐'.repeat(st) + '☆'.repeat(3 - st)}</div>`;
+    b.onclick = () => { ac(); sfx.pop(); startLevel(lv); };
+    box.appendChild(b);
+  }
+}
+
+/* ============ INPUT ============ */
+const keys = {};
+const dpad = { up: false, down: false, left: false, right: false };
+addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space' || e.code === 'KeyL') { e.preventDefault(); startLook(); }
+  if (e.code === 'KeyM') overview = !overview;
+  if (e.code.startsWith('Arrow')) e.preventDefault();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+for (const b of document.querySelectorAll('#dpad button')) {
+  const d = b.dataset.d;
+  const on = e => { e.preventDefault(); dpad[d] = true; b.classList.add('on'); ac(); };
+  const off = e => { dpad[d] = false; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+}
+$('lookBtn').addEventListener('pointerdown', e => { e.preventDefault(); ac(); startLook(); });
+$('btnView').onclick = () => { overview = !overview; };
+$('btnMenu').onclick = showMenu;
+$('btnLang').onclick = toggleLang; $('menuLang').onclick = () => { ac(); toggleLang(); };
+$('btnSound').onclick = () => { soundOn = !soundOn; $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (!soundOn) { sirenVol(0); try { speechSynthesis.cancel(); } catch (e) { } } };
+
+function startLook() {
+  if (paused || child.look) return;
+  child.look = { t: 0 }; say(tr('sayLook'));
+}
+
+/* ============ BUBBLES / HUD ============ */
+let bubble = null, showBubble2 = null, statusText = '', toastT = 0, snapCam = true;
+const tmpV = new THREE.Vector3();
+function placeBubble(el, obj, x, y, z, data) {
+  if (!data || data.t <= 0 || paused || overview) { el.style.display = 'none'; return; }
+  tmpV.set(x, y, z).project(camera);
+  if (tmpV.z > 1) { el.style.display = 'none'; return; }
+  el.style.display = 'block'; el.textContent = data.text;
+  el.style.left = ((tmpV.x + 1) / 2 * innerWidth) + 'px'; el.style.top = ((1 - tmpV.y) / 2 * innerHeight) + 'px';
+}
+function setStatus(t) { if (t === statusText) return; statusText = t; const s = $('status'); s.textContent = t; s.style.display = t ? 'block' : 'none'; }
+function toast(t) { const e = $('toast'); e.textContent = t; e.style.display = 'block'; toastT = 1.8; }
+function updateStatus() {
+  if (paused) return setStatus('');
+  if (child.onRoad) return setStatus(tr('onRoad'));
+  if (L.ball) return setStatus(idleT > 6 ? tr('ballHint') : tr('ballQ'));
+  if (L.rev) return setStatus(rev && rev.st !== 'park' && rev.st !== 'gone' ? tr('rev') : tr('revIdle'));
+  if (L.adult && !child.hand) return setStatus(tr('holdHand'));
+  if (L.night && !child.vest) return setStatus(tr('vestNeed'));
+  const near = findNearCross();
+  if (!near) return setStatus(L.hintCross ? tr('toCross') : '');
+  const sig = signals.find(s => s.c === near);
+  if (sig) {
+    const p = sig.phase().ped;
+    if (amb && dangerAt(near, true)) return setStatus(tr('siren'));
+    return setStatus(p === 'R' ? tr('pedR') : p === 'F' ? tr('pedF') : tr('pedG'));
+  }
+  if (now - child.lastLook < 10) return setStatus(dangerAt(near, false, 1.6) ? tr('coming') : tr('clear'));
+  setStatus(tr('pressLook'));
+}
+
+/* ============ MAIN LOOP ============ */
+function updateChild(dt) {
+  let ix = 0, iz = 0;
+  if (keys.ArrowUp || keys.KeyW || dpad.up) iz -= 1;
+  if (keys.ArrowDown || keys.KeyS || dpad.down) iz += 1;
+  if (keys.ArrowLeft || keys.KeyA || dpad.left) ix -= 1;
+  if (keys.ArrowRight || keys.KeyD || dpad.right) ix += 1;
+  let moving = false;
+  if (child.look) { // look left, right, left
+    child.look.t += dt; const t = child.look.t;
+    const tgt = t < 0.6 ? 1.1 : t < 1.2 ? -1.1 : t < 1.8 ? 1.1 : 0;
+    child.p.head.rotation.y += (tgt - child.p.head.rotation.y) * Math.min(1, dt * 12);
+    const nc = findNearCross(); const busy = nc && dangerAt(nc, false, 1.6);
+    bubble = { text: t < 0.6 ? tr('lookL') : t < 1.2 ? tr('lookR') : t < 1.8 ? tr('lookL') : busy ? tr('busy') : tr('allClear'), t: t < 1.8 ? 0.2 : 1.4 };
+    if (t > 2.0) { child.look = null; child.lastLook = now; child.p.head.rotation.y = 0; }
+    ix = iz = 0;
+  }
+  const len = Math.hypot(ix, iz);
+  if (len > 0) {
+    idleT = 0;
+    const sp = 4.3 * dt / len; let nx = child.x + ix * sp, nz = child.z + iz * sp;
+    nx = clamp(nx, wx(16), wx(1008)); nz = clamp(nz, wz(104), wz(1494));
+    const willRoad = isRoad(nx, nz);
+    if (!child.onRoad && willRoad) { // stop at the curb for a moment
+      child.curbHold += dt;
+      if (child.curbHold < 0.45) { nx = child.x; nz = child.z; bubble = { text: tr('curb'), t: 0.3 }; }
+    } else if (!willRoad) child.curbHold = 0;
+    if (nx !== child.x || nz !== child.z) moving = true;
+    child.x = nx; child.z = nz;
+    const tf = Math.atan2(ix, iz); let df = tf - child.face; df = Math.atan2(Math.sin(df), Math.cos(df)); child.face += df * Math.min(1, dt * 12);
+  } else idleT += dt;
+  child.p.g.position.set(child.x, 0, child.z); child.p.g.rotation.y = child.face;
+  animPerson(child.p, moving, dt);
+
+  const onRoad = isRoad(child.x, child.z);
+  if (onRoad && !child.onRoad) { child.onRoad = true; onEnterRoad(); }
+  else if (!onRoad && child.onRoad) { child.onRoad = false; onExitRoad(); }
+  if (!onRoad) child.safe = { x: child.x, z: child.z };
+}
+function findNearCross() { let best = null, bd = 9; for (const c of CROSS) { const d = Math.hypot(c.cx - child.x, c.cz - child.z); if (d < bd) { bd = d; best = c; } } return best; }
+function sideOf(c) { return c.axis === 'h' ? Math.sign(child.z - (c.Z0 + c.Z1) / 2) : Math.sign(child.x - (c.X0 + c.X1) / 2); }
+function onEnterRoad() {
+  if (paused) return;
+  if (L.ball) return fail('ball');
+  if (L.adult && !child.hand) return fail('adult');
+  if (L.night && !child.vest) return fail('vest');
+  const c = findCross(child.x, child.z, 0.6);
+  if (!c) return fail('notCross');
+  child.cross = c; child.entrySide = sideOf(c);
+  const sig = signals.find(s => s.c === c);
+  if (sig) { const p = sig.phase().ped; if (p === 'R') return fail('red'); if (p === 'F') return fail('flash'); }
+  else if (now - child.lastLook > 10) return fail('look');
+  const d = dangerAt(c, false); if (d) { window.__dbg = { x: d.x, v: d.v, dir: d.dir, amb: d.amb, road: d.road, cx: c.cx, ph: sig && sig.phase() }; return fail(d.amb ? 'amb' : 'car'); }
+}
+function onExitRoad() {
+  const c = child.cross; child.cross = null;
+  if (c && sideOf(c) !== child.entrySide && L.free) { safeCount++; sfx.win(); toast(tr('safeCross')(safeCount)); $('lvText').textContent = `${tr('safeCount')}${'⭐'.repeat(Math.min(safeCount, 10))}${safeCount > 10 ? ' +' + (safeCount - 10) : ''}`; }
+}
+function rules() {
+  if (paused) return;
+  if (child.onRoad) {
+    if (child.cross && !inCross(child.cross, child.x, child.z, 1.0)) return fail('leave');
+    if (child.cross && amb && dangerAt(child.cross, true)) { const g = amb.dir * (child.cross.cx - (amb.x + amb.len / 2)); if (g > 0 && g < 40) return fail('amb'); }
+  }
+  for (const c of cars) if (Math.abs(child.x - c.x) < c.len / 2 + 0.3 && Math.abs(child.z - c.z) < c.wid / 2 + 0.3) return fail('hit');
+  if (L.goal && !child.onRoad && Math.hypot(child.x - wx(L.goal[0]), child.z - wz(L.goal[1])) < 2.2) return win();
+  if (L.parent && Math.hypot(child.x - wx(L.parent[0]), child.z - wz(L.parent[1])) < 2.0) return win();
+  if (L.adult && !child.hand && Math.hypot(child.x - parent.p.g.position.x, child.z - parent.p.g.position.z) < 1.9) { child.hand = true; sfx.pop(); bubble = { text: tr('hand'), t: 1.6 }; say(tr('handOK').replace(/^\S+\s/, '')); }
+  if (L.night && !child.vest && Math.hypot(child.x - vestPick.position.x, child.z - vestPick.position.z) < 1.6) { child.vest = true; vestPick.visible = false; vestWorn.visible = true; sfx.win(); bubble = { text: tr('vestOn'), t: 2 }; say(tr('vestOn')); }
+  if (rev && revZone()) return fail('reverse');
+}
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+function updateCamera(dt) {
+  let p, l;
+  if (overview) { p = new THREE.Vector3(0, 165, 62); l = new THREE.Vector3(0, 0, 4); }
+  else { p = new THREE.Vector3(child.x, 11.5, child.z + 13); l = new THREE.Vector3(child.x, 1, child.z - 3); }
+  const k = snapCam ? 1 : 1 - Math.exp(-dt * 4); snapCam = false;
+  camPos.lerp(p, k); camLook.lerp(l, k); camera.position.copy(camPos); camera.lookAt(camLook);
+  // fade buildings that stand between the camera and the child
+  for (const s of sprites) {
+    const block = !overview && s.z > child.z + 0.3 && s.z < camPos.z + 1 && child.x > s.X0 - 3 && child.x < s.X1 + 3;
+    s.op += ((block ? 0.14 : 1) - s.op) * Math.min(1, dt * 8);
+    for (const m of s.mats) { m.opacity = s.op; m.alphaTest = 0.5 * s.op; m.depthWrite = s.op > 0.9; }
+  }
+}
+function simStep(dt) {
+  if (L && !paused) {
+    now += dt;
+    stepTraffic(dt);
+    updateChild(dt);
+    // level 4: ambulance comes when the green man appears
+    if (L.ambulance && !amb && !ambDone && signals[1].phase().ped === 'G') spawnAmbulance();
+    if (amb) { const dd = Math.hypot(amb.x - child.x, amb.z - child.z); sirenVol(clamp(0.12 - dd / 600, 0.01, 0.1)); const on = Math.floor(now * 6) % 2; amb.g.userData.lights[0].color.set(on ? '#ff2020' : '#400'); amb.g.userData.lights[1].color.set(on ? '#102040' : '#2060ff'); }
+    if (ballAnim) { ballAnim.t += dt; const k = clamp(ballAnim.t / 1.4, 0, 1), e = 1 - Math.pow(1 - k, 3); const f = L.ball.from, to = L.ball.to; ball.position.set(wx(f[0] + (to[0] - f[0]) * e), 0, wz(f[1] + (to[1] - f[1]) * e)); ball.userData.ball.rotation.x += dt * 8 * (1 - k); }
+    if (L.rev) updateRev(dt);
+    if (L.adult || L.withAdult) updateAdult(dt);
+    if (L.parent) { const wave = idleT > 6 || ballAnim && ballAnim.t > 3; animPerson(parent.p, false, dt, wave); if (wave && !showBubble2) showBubble2 = { text: tr('here'), t: 3 }; }
+    // pedestrian signal ticking near a green man
+    for (const s of signals) { const ph = s.phase().ped; if ((ph === 'G' || ph === 'F') && Math.hypot(s.c.cx - child.x, s.c.cz - child.z) < 14 && now - lastTick > 0.22) { lastTick = now; sfx.tick(); } }
+    rules();
+    if (bubble) bubble.t -= dt; if (showBubble2) { showBubble2.t -= dt; if (showBubble2.t < -8) showBubble2 = null; }
+    if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').style.display = 'none'; }
+  } else if (L) { if ($('menu').style.display === 'flex') { now += dt; stepTraffic(dt); } else for (const s of signals) s.update(0, now); }
+}
+let last = performance.now();
+function frame(t) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  simStep(dt);
+  goalStar.rotation.y += dt * 2; goalStar.position.y = 2.4 + Math.sin(t / 300) * 0.25;
+  if (vestPick.visible) { vestPick.userData.v.rotation.y += dt * 1.5; vestPick.userData.v.position.y = 1.1 + Math.sin(t / 300) * 0.15; }
+  goalRing.material.opacity = 0.55 + Math.sin(t / 250) * 0.3;
+  arrow.position.y = Math.sin(t / 220) * 0.5; hintGlow.material.opacity = 0.25 + Math.sin(t / 250) * 0.15;
+  updateCamera(dt);
+  updateStatus();
+  placeBubble($('bubble'), null, child.x, 2.7, child.z, bubble);
+  if (L && L.adult && !child.hand) placeBubble($('bubble2'), null, parent.p.g.position.x, 3.6, parent.p.g.position.z, { text: '✋', t: 1 });
+  else if (L && L.parent) placeBubble($('bubble2'), null, wx(L.parent[0]), 3.4, wz(L.parent[1]), showBubble2 && showBubble2.t > 0 ? showBubble2 : null);
+  else if (rev && (rev.st === 'lights' || rev.st === 'back')) placeBubble($('bubble2'), null, rev.x, 2.8, rev.z + 1.5, { text: tr('beep'), t: 1 });
+  else if (amb) placeBubble($('bubble2'), null, amb.x, 3.4, amb.z, showBubble2 && showBubble2.t > 0 ? showBubble2 : null);
+  else $('bubble2').style.display = 'none';
+  renderer.render(scene, camera);
+}
+// idle backdrop for the menu: slow view of the town
+L = LEVELS[8]; lanes = laneList(L.lanes); for (let i = 0; i < 200; i++) stepTraffic(0.05); setChild(240, 874); goal.visible = hint.visible = hintGlow.visible = false; parent.p.g.visible = false; ball.visible = false; overview = true;
+applyLang();
+$('loading').style.display = 'none';
+showMenu();
+requestAnimationFrame(frame);
+window.__game = { sim: (sec) => { for (let i = 0; i < sec * 20; i++) simStep(0.05); }, child, cars: () => cars, startLevel: i => startLevel(LEVELS[i]), get state() { return { paused, x: child.x, z: child.z, onRoad: child.onRoad, cars: cars.length, L: L && L.id }; }, keys, startLook, hideDlg, setPaused: v => paused = v, signals, fail, win, overview: v => overview = v };
+</script>
+</body>
+</html>
